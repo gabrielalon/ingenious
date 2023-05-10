@@ -1,16 +1,18 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace App\Infrastructure\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
-class Handler extends ExceptionHandler
+final class Handler extends ExceptionHandler
 {
     /**
      * A list of exception types with their corresponding custom log levels.
      *
-     * @var array<class-string<\Throwable>, \Psr\Log\LogLevel::*>
+     * @var array<class-string<Throwable>, \Psr\Log\LogLevel::*>
      */
     protected $levels = [
         //
@@ -19,7 +21,7 @@ class Handler extends ExceptionHandler
     /**
      * A list of the exception types that are not reported.
      *
-     * @var array<int, class-string<\Throwable>>
+     * @var array<int, class-string<Throwable>>
      */
     protected $dontReport = [
         //
@@ -38,13 +40,39 @@ class Handler extends ExceptionHandler
 
     /**
      * Register the exception handling callbacks for the application.
-     *
-     * @return void
      */
-    public function register()
+    public function register(): void
     {
-        $this->reportable(function (Throwable $e) {
-            //
+        $this->reportable(static function (Throwable $e) {
         });
+
+        $this->renderable(function (BaseException $e) {
+            return $this->buildResponse($e);
+        });
+
+        $this->renderable(function (NotFoundHttpException $e) {
+            return $this->buildResponse(new NotFoundException);
+        });
+    }
+
+    private function buildResponse(BaseException $e): JsonResponse
+    {
+        if (config('app.debug')) {
+            $response = [
+                'message' => $e->getMessage(),
+                'errors' => $e->getErrors(),
+                'exception' => get_class($e),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTrace(),
+            ];
+        } else {
+            $response = [
+                'message' => $e->getMessage(),
+                'errors' => $e->getErrors(),
+            ];
+        }
+
+        return response()->json($response, (int) $e->getCode());
     }
 }

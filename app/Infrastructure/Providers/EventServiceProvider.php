@@ -4,31 +4,21 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Providers;
 
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
+use App\Modules\Invoices\Infrastructure\Subscribers\InvoiceSubscriber;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use ReflectionClass;
+use Support\Attributes\ListensTo;
 
 class EventServiceProvider extends ServiceProvider
 {
     /**
-     * The event to listener mappings for the application.
+     * The subscribers to resolve.
      *
-     * @var array<class-string, array<int, class-string>>
+     * @var array<class-string>
      */
-    protected $listen = [
-        Registered::class => [
-            SendEmailVerificationNotification::class,
-        ],
+    private array $subscribers = [
+        InvoiceSubscriber::class,
     ];
-
-    /**
-     * Register any events for your application.
-     *
-     */
-    public function boot(): void
-    {
-        //
-    }
 
     /**
      * Determine if events and listeners should be automatically discovered.
@@ -37,5 +27,42 @@ class EventServiceProvider extends ServiceProvider
     public function shouldDiscoverEvents(): bool
     {
         return false;
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    public function register(): void
+    {
+        parent::register();
+
+        foreach ($this->subscribers as $subscriber) {
+            foreach ($this->resolveListeners($subscriber) as [$event, $listener]) {
+                app('events')->listen($event, $listener);
+            }
+        }
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    private function resolveListeners(string $subscriberClass): array
+    {
+        $reflectionClass = new ReflectionClass($subscriberClass);
+
+        $listeners = [];
+
+        foreach ($reflectionClass->getMethods() as $method) {
+            $attributes = $method->getAttributes(ListensTo::class);
+
+            foreach ($attributes as $attribute) {
+                /** @var ListensTo $listener */
+                $listener = $attribute->newInstance();
+
+                $listeners[] = [$listener->eventClass, [$subscriberClass, $method->getName()]];
+            }
+        }
+
+        return $listeners;
     }
 }

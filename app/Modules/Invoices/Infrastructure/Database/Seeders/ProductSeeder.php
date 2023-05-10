@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Invoices\Infrastructure\Database\Seeders;
 
-use App\Modules\Invoices\Domain\Enums\CurrencyEnum;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Money\Currency;
 use Ramsey\Uuid\Uuid;
 
 class ProductSeeder extends Seeder
@@ -37,7 +37,7 @@ class ProductSeeder extends Seeder
                 'id' => Uuid::uuid4()->toString(),
                 'name' => $productNames[array_rand($productNames)],
                 'price' => rand(1111, 9999999),
-                'currency' => 'usd',
+                'currency' => Currency::USD()->symbol,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
