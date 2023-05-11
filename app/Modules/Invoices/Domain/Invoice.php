@@ -9,4 +9,9 @@ final class Invoice
         public Values\InvoiceStatus $invoiceStatus,
     ) {
     }
+
+    public function setInvoiceStatus(Values\InvoiceStatus $invoiceStatus): void
+    {
+        $this->invoiceStatus = $invoiceStatus;
+    }
 }

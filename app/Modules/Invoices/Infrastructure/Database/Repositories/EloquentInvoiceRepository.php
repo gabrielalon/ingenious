@@ -28,8 +28,10 @@ final class EloquentInvoiceRepository implements InvoiceRepositoryInterface
         );
     }
 
-    public function changeStatus(Values\InvoiceId $invoiceId, Values\InvoiceStatus $invoiceStatus): void
+    public function save(Invoice $invoice): void
     {
-        InvoiceEntity::byUuid($invoiceId->value)->update(['status' => $invoiceStatus->value->value]);
+        InvoiceEntity::byUuid($invoice->invoiceId->value)->update([
+            'status' => $invoice->invoiceStatus->value->value,
+        ]);
     }
 }

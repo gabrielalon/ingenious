@@ -7,7 +7,6 @@ use App\Modules\Approval\Api\Dto\ApprovalDto;
 use App\Modules\Approval\Api\Events\EntityApproved;
 use App\Modules\Approval\Api\Events\EntityRejected;
 use App\Modules\Invoices\Application\Repositories\InvoiceRepositoryInterface;
-use App\Modules\Invoices\Domain\Values\InvoiceId;
 use App\Modules\Invoices\Domain\Values\InvoiceStatus;
 use App\Modules\Invoices\Infrastructure\Database\Entities\Invoice;
 use Support\Attributes\ListensTo;
@@ -34,10 +33,10 @@ final readonly class InvoiceSubscriber
     private function changeState(ApprovalDto $dto, StatusEnum $status): void
     {
         if ($dto->entity === Invoice::class) {
-            $this->invoiceRepository->changeStatus(
-                invoiceId: InvoiceId::fromId($dto->id->toString()),
-                invoiceStatus: InvoiceStatus::fromStatus($status->value),
-            );
+            $invoice = $this->invoiceRepository->fetchOne($dto->id);
+            $invoice->setInvoiceStatus(InvoiceStatus::fromStatus($status->value));
+
+            $this->invoiceRepository->save($invoice);
         }
     }
 }
