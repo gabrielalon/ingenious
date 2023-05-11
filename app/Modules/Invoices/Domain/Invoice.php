@@ -10,7 +10,7 @@ final class Invoice
     ) {
     }
 
-    public function setInvoiceStatus(Values\InvoiceStatus $invoiceStatus): void
+    public function changeInvoiceStatus(Values\InvoiceStatus $invoiceStatus): void
     {
         $this->invoiceStatus = $invoiceStatus;
     }

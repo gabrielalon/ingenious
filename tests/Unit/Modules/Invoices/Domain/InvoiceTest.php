@@ -10,7 +10,7 @@ use Tests\TestCase;
 class InvoiceTest extends TestCase
 {
     /** @test */
-    public function itShouldCreateModel(): void
+    public function itShouldCreateInvoice(): void
     {
         $model = new Invoice(
             invoiceId: $invoiceId = Values\InvoiceId::fromId($this->faker->uuid),
@@ -18,6 +18,19 @@ class InvoiceTest extends TestCase
         );
 
         $this->assertEquals($invoiceId->value, $model->invoiceId->value);
+        $this->assertEquals($invoiceStatus->value, $model->invoiceStatus->value);
+    }
+
+    /** @test */
+    public function itShouldChangeInvoiceState(): void
+    {
+        $model = new Invoice(
+            invoiceId: Values\InvoiceId::fromId($this->faker->uuid),
+            invoiceStatus: Values\InvoiceStatus::fromStatus(StatusEnum::DRAFT->value),
+        );
+
+        $model->changeInvoiceStatus($invoiceStatus = Values\InvoiceStatus::fromStatus(StatusEnum::APPROVED->value));
+
         $this->assertEquals($invoiceStatus->value, $model->invoiceStatus->value);
     }
 }

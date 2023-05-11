@@ -34,7 +34,7 @@ final readonly class InvoiceSubscriber
     {
         if ($dto->entity === Invoice::class) {
             $invoice = $this->invoiceRepository->fetchOne($dto->id);
-            $invoice->setInvoiceStatus(InvoiceStatus::fromStatus($status->value));
+            $invoice->changeInvoiceStatus(InvoiceStatus::fromStatus($status->value));
 
             $this->invoiceRepository->save($invoice);
         }
